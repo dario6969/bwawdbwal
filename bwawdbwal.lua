@@ -1,7 +1,6 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')
 
-local remotes = ReplicatedStorage.Remotes
 local player = game.Players.LocalPlayer
 
 local function clearCons()
@@ -49,7 +48,7 @@ local function init(character)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping * 1.3))
-            local distance = 18 + (math.min(ball.Velocity.Magnitude / 300, 1) * 25)
+            local distance = 18 + (math.min(ball.Velocity.Magnitude / 420, 1) * 35)
 
             if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
                 keypress(0x46)
