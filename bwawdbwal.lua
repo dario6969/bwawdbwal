@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')
 
-local MAX_DISTANCE = 28
+local MAX_DISTANCE = 30
 
 local remotes = ReplicatedStorage.Remotes
 local player = game.Players.LocalPlayer
@@ -50,26 +50,25 @@ local function init(character)
                 continue
             end
 
-            local interpolated = ball.Position + (ball.Velocity * ping * 1.25)
+            local interpolated = ball.Position + (ball.Velocity * (ping * 1.25))
 
             if (pos - interpolated).Magnitude < MAX_DISTANCE then
                 keypress(0x46)
 
                 cooldown = tick()
 
-                while ball:GetAttribute('target') == player.Name or tick() - cooldown > ping * 2 do
+                while ball:GetAttribute('target') == player.Name or tick() - cooldown > ping * 3 do
                     task.wait()
                 end
 
                 cooldown = false
-
+                
                 break
             end
         end
     end
 
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
-    table.insert(shared.Connections, RunService.PreSimulation:Connect(autoParry))
 end
 
 player.CharacterAdded:Connect(init)
