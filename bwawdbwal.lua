@@ -1,8 +1,6 @@
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
 local RunService = game:GetService('RunService')
 
-local MAX_DISTANCE = 30
-
 local remotes = ReplicatedStorage.Remotes
 local player = game.Players.LocalPlayer
 
@@ -51,8 +49,9 @@ local function init(character)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping * 1.33))
+            local distance = 15 + (math.min(ball.Velocity.Magnitude / 125, 1) * 15)
 
-            if (pos - interpolated).Magnitude < MAX_DISTANCE or (pos - ball.Position).Magnitude < MAX_DISTANCE then
+            if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
                 keypress(0x46)
 
                 cooldown = tick()
