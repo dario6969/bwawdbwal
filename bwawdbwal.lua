@@ -46,8 +46,8 @@ local function init(character)
                 continue
             end
 
-            local interpolated = ball.Position + (ball.Velocity * (ping * 1.33))
-            local distance = 15 + (math.min(ball.Velocity.Magnitude / 600, 1) * 50)
+            local interpolated = ball.Position + (ball.Velocity * (ping * 1.35))
+            local distance = 9 + (math.min(ball.Velocity.Magnitude / 600, 1) * 85)
 
             if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
                 keypress(0x46)
@@ -66,7 +66,6 @@ local function init(character)
     end
 
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
-    table.insert(shared.Connections, RunService.PreSimulation:Connect(autoParry))
 end
 
 player.CharacterAdded:Connect(init)
