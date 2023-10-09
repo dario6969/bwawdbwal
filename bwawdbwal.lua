@@ -47,7 +47,7 @@ local function init(character)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping * 1.35))
-            local distance = 9 + (math.min(ball.Velocity.Magnitude / 600, 1) * 85)
+            local distance = 13 + (math.min(ball.Velocity.Magnitude / 600, 1) * 56)
 
             if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
                 keypress(0x46)
