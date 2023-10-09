@@ -50,9 +50,9 @@ local function init(character)
                 continue
             end
 
-            local interpolated = ball.Position + (ball.Velocity * (ping * 1.25))
+            local interpolated = ball.Position + (ball.Velocity * (ping * 1.33))
 
-            if (pos - interpolated).Magnitude < MAX_DISTANCE then
+            if (pos - interpolated).Magnitude < MAX_DISTANCE or (pos - ball.Position).Magnitude < MAX_DISTANCE then
                 keypress(0x46)
 
                 cooldown = tick()
@@ -62,7 +62,7 @@ local function init(character)
                 end
 
                 cooldown = false
-                
+
                 break
             end
         end
