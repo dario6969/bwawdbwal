@@ -48,15 +48,15 @@ local function init(character)
                 continue
             end
 
-            local interpolated = ball.Position + (ball.Velocity * (ping * 1.33))
-            local distance = 15 + (math.min(ball.Velocity.Magnitude / 125, 1) * 15)
+            local interpolated = ball.Position + (ball.Velocity * (ping * 1.3))
+            local distance = 15 + (math.min(ball.Velocity.Magnitude / 200, 1) * 25)
 
             if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
                 keypress(0x46)
 
                 cooldown = tick()
 
-                while ball:GetAttribute('target') == player.Name or tick() - cooldown > ping * 3 do
+                while ball:GetAttribute('target') == player.Name or tick() - cooldown < ping * 3 do
                     task.wait()
                 end
 
