@@ -28,6 +28,8 @@ local settings = {
         for name, value in shared.Settings do
             settings[name] = value
         end
+
+        shared.Settings = nil
     end
 end
 
@@ -118,7 +120,7 @@ local function init(character)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping / 2))
-            local distance = 3 + (velocity.Magnitude / 5) + (ping * 100)
+            local distance = 4 + (velocity.Magnitude / 5) + (ping * 100)
 
             if visualizer then
                 visualizer.Size = Vector3.one * distance
@@ -147,10 +149,6 @@ local function init(character)
                 cooldown = tick()
 
                 while ball:GetAttribute('target') == player.Name do
-                    if tick() - cooldown > ping * 1.5 then
-                        break
-                    end
-
                     task.wait()
                 end
 
