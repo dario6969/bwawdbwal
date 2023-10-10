@@ -18,6 +18,10 @@ end
 
 shared.Connections = {}
 
+local function isAlive(entity)
+    return entity:FindFirstChild('Humanoid') and entity.Humanoid.Health > 0
+end
+
 local function init(character)
     clearCons()
 
@@ -27,6 +31,55 @@ local function init(character)
     humanoid.Died:Once(clearCons)
 
     local cooldown = false
+
+    local lastTarget
+    local lastClash
+
+    local function clash(ball)
+        if tick() - (lastClash or 0) > 0.25 then
+            lastClash = 0
+            lastTarget = nil
+
+            return
+        end
+
+        if not (lastTarget and isAlive(lastTarget)) then
+            return
+        end
+
+        local targetRoot = lastTarget:FindFirstChild('HumanoidRootPart')
+
+        if not targetRoot then
+            return
+        end
+
+        local maxDistance = math.clamp(ball.Velocity.Magnitude / 3, 6, 30)
+
+        print(lastTarget.Name, (targetRoot.Position - root.Position).Magnitude, maxDistance)
+
+        if (targetRoot.Position - root.Position).Magnitude < maxDistance then
+            print('clash')
+
+            lastClash = tick()
+
+            return true
+        elseif (targetRoot.Position - root.Position).Magnitude < 30 then
+            print('no clash')
+        end
+    end
+
+    local function setLastTarget(ball)
+        local targetName = ball:GetAttribute('target')
+        local target = targetName and workspace.Alive:FindFirstChild(targetName)
+
+        if not target or target == player.Name or not isAlive(target) then
+            lastTarget = nil
+
+            return
+        end
+
+        lastTarget = target
+    end
 
     local function autoParry()
         if not root.Parent then
@@ -46,12 +99,21 @@ local function init(character)
                 continue
             end
 
-            local interpolated = ball.Position + (ball.Velocity * (ping * 1.35))
-            local distance = 13 + (math.min(ball.Velocity.Magnitude / 600, 1) * 56)
+            local interpolated = ball.Position + (ball.Velocity * (ping * 1.4))
+            local distance = 13 + (math.min(ball.Velocity.Magnitude / 600, 1) * 57)
+
+            if lastTarget and isAlive(lastTarget) and tick() - (lastClash or 0) < ping * 2 and (root.Position - lastTarget.PrimaryPart.Position).Magnitude < 50 then
+                distance *= 1.4
+            end
 
             if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
                 keypress(0x46)
+                mouse1click()
 
+                if clash(ball) then
+                    return
+                end
+                
                 cooldown = tick()
 
                 while ball:GetAttribute('target') == player.Name or tick() - cooldown < ping * 3 do
@@ -60,12 +122,16 @@ local function init(character)
 
                 cooldown = false
 
+                setLastTarget(ball)
+
                 break
             end
         end
     end
 
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
+    table.insert(shared.Connections, RunService.PreSimulation:Connect(autoParry))
+    table.insert(shared.Connections, RunService.Heartbeat:Connect(autoParry))
 end
 
 player.CharacterAdded:Connect(init)
