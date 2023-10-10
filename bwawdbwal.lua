@@ -125,7 +125,7 @@ local function init(character)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping * 1.4))
-            local distance = 10 + (math.min(ball.Velocity.Magnitude / 700, 1) * 80)
+            local distance = 10 + (math.min(ball.Velocity.Magnitude / 700, 1) * 90)
             
             if lastTarget and isAlive(lastTarget) and tick() - (lastClash or 0) < ping * 2 and (root.Position - lastTarget.PrimaryPart.Position).Magnitude < 50 then
                 distance *= 1.2
