@@ -53,13 +53,12 @@ local function init(character)
             return
         end
 
-        local maxDistance = math.clamp(ball.Velocity.Magnitude / 3, 6, 30)
+        local maxDistance = math.clamp(ball.Velocity.Magnitude / 3, 6, 26)
 
         if (targetRoot.Position - root.Position).Magnitude < maxDistance then
             lastClash = tick()
 
             return true
-        elseif (targetRoot.Position - root.Position).Magnitude < 30 then
         end
     end
 
@@ -98,7 +97,7 @@ local function init(character)
             local distance = 13 + (math.min(ball.Velocity.Magnitude / 600, 1) * 57)
 
             if lastTarget and isAlive(lastTarget) and tick() - (lastClash or 0) < ping * 2 and (root.Position - lastTarget.PrimaryPart.Position).Magnitude < 50 then
-                distance *= 1.4
+                distance *= 1.33
             end
 
             if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
