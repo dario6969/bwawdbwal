@@ -20,6 +20,17 @@ local function clearCons()
     print('disconnected old')
 end
 
+local settings = {
+    ParrySphere = true,
+    BallPrediction = true,
+} do
+    if shared.Settings then
+        for name, value in shared.Settings do
+            settings[name] = value
+        end
+    end
+end
+
 if shared.Connections then
     clearCons()
 end
@@ -45,26 +56,34 @@ local function init(character)
 
     local lastVelocity = Vector3.zero
 
-    local visualizer = Instance.new('Part')
-    visualizer.Size = Vector3.zero
-    visualizer.Shape = Enum.PartType.Ball
-    visualizer.Color = Color3.fromRGB(255, 255, 255)
-    visualizer.Material = Enum.Material.Neon
-    visualizer.Transparency = 0.99
-    visualizer.CanCollide = false
-    visualizer.Parent = workspace
+    local visualizer
+    local fakeBall
 
-    local fakeBall = Instance.new('Part')
-    fakeBall.Size = Vector3.one * 3
-    fakeBall.Shape = Enum.PartType.Ball
-    fakeBall.Color = Color3.fromRGB(255, 106, 106)
-    fakeBall.Material = Enum.Material.Neon
-    fakeBall.Transparency = 0.5
-    fakeBall.CanCollide = false
-    fakeBall.Parent = workspace
+    if settings.ParrySphere then
+        visualizer = Instance.new('Part')
+        visualizer.Size = Vector3.zero
+        visualizer.Shape = Enum.PartType.Ball
+        visualizer.Color = Color3.fromRGB(255, 255, 255)
+        visualizer.Material = Enum.Material.Neon
+        visualizer.Transparency = 0.99
+        visualizer.CanCollide = false
+        visualizer.Parent = workspace
 
-    shared.Visualizer = visualizer
-    shared.Interpolated = fakeBall
+        shared.Visualizer = visualizer
+    end
+
+    if settings.BallPrediction then
+        fakeBall = Instance.new('Part')
+        fakeBall.Size = Vector3.one * 3
+        fakeBall.Shape = Enum.PartType.Ball
+        fakeBall.Color = Color3.fromRGB(255, 106, 106)
+        fakeBall.Material = Enum.Material.Neon
+        fakeBall.Transparency = 0.5
+        fakeBall.CanCollide = false
+        fakeBall.Parent = workspace
+
+        shared.Interpolated = fakeBall
+    end
 
     local function autoParry()
         if not root.Parent then
@@ -77,7 +96,9 @@ local function init(character)
 
         local pos = root.Position
 
-        visualizer.Position = pos
+        if visualizer then
+            visualizer.Position = pos
+        end
 
         local ping = game.Stats.Network.ServerStatsItem['Data Ping']:GetValue() / 1000
 
@@ -88,22 +109,30 @@ local function init(character)
 
             local velocity = ball.Velocity
 
+            if velocity.Magnitude < 3 then
+                return
+            end
+
             if velocity.Magnitude < lastVelocity.Magnitude then
                 velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.01)
             end
 
-            lastVelocity = velocity
-
             local interpolated = ball.Position + (ball.Velocity * (ping / 2))
-            local distance = 1 + (velocity.Magnitude / 5) + (ping * 100)
+            local distance = 3 + (velocity.Magnitude / 5) + (ping * 100)
 
-            fakeBall.Position = interpolated
-            visualizer.Size = Vector3.one * distance
+            if visualizer then
+                visualizer.Size = Vector3.one * distance
+            end
+
+            if fakeBall then
+                fakeBall.Position = interpolated
+            end
 
             if ball:GetAttribute('target') ~= player.Name then
                 return
             end
             
+            --if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
             if (pos - interpolated).Magnitude < distance then
                 keypress(0x46)
 
@@ -115,9 +144,15 @@ local function init(character)
                     end
                 end
                 
-                cooldown = true
+                cooldown = tick()
 
-                ball:GetAttributeChangedSignal('target'):Wait()
+                while ball:GetAttribute('target') == player.Name do
+                    if tick() - cooldown > ping * 1.5 then
+                        break
+                    end
+
+                    task.wait()
+                end
 
                 local target = ball:GetAttribute('target')
 
@@ -138,7 +173,9 @@ local function init(character)
             return
         end
 
-        visualizer.Size = Vector3.one
+        if visualizer then
+            visualizer.Size = Vector3.one
+        end
     end
 
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
