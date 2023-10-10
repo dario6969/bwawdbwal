@@ -160,7 +160,11 @@ local function init(character)
     table.insert(shared.Connections, RunService.PreSimulation:Connect(autoParry))
 end
 
-table.insert(shared.Connections, player.CharacterAdded:Connect(init))
+if shared.Poop then
+    shared.Poop:Disconnect()
+end
+
+shared.Poop = player.CharacterAdded:Connect(init)
 
 if player.Character then
     init(player.Character)
