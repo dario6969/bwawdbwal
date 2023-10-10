@@ -55,16 +55,11 @@ local function init(character)
 
         local maxDistance = math.clamp(ball.Velocity.Magnitude / 3, 6, 30)
 
-        print(lastTarget.Name, (targetRoot.Position - root.Position).Magnitude, maxDistance)
-
         if (targetRoot.Position - root.Position).Magnitude < maxDistance then
-            print('clash')
-
             lastClash = tick()
 
             return true
         elseif (targetRoot.Position - root.Position).Magnitude < 30 then
-            print('no clash')
         end
     end
 
@@ -131,7 +126,6 @@ local function init(character)
 
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
     table.insert(shared.Connections, RunService.PreSimulation:Connect(autoParry))
-    table.insert(shared.Connections, RunService.Heartbeat:Connect(autoParry))
 end
 
 player.CharacterAdded:Connect(init)
