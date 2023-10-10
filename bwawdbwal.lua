@@ -40,15 +40,17 @@ local function init(character)
 
     local cooldown = false
 
+    local targetUpdate = 0
     local lastTarget
-    local lastClash
+
+    local lastVelocity = Vector3.zero
 
     local visualizer = Instance.new('Part')
     visualizer.Size = Vector3.zero
     visualizer.Shape = Enum.PartType.Ball
     visualizer.Color = Color3.fromRGB(255, 255, 255)
     visualizer.Material = Enum.Material.Neon
-    visualizer.Transparency = 0.9
+    visualizer.Transparency = 0.99
     visualizer.CanCollide = false
     visualizer.Parent = workspace
 
@@ -63,46 +65,6 @@ local function init(character)
 
     shared.Visualizer = visualizer
     shared.Interpolated = fakeBall
-
-    local function clash(ball)
-        if tick() - (lastClash or 0) > 0.25 then
-            lastClash = 0
-            lastTarget = nil
-
-            return
-        end
-
-        if not (lastTarget and isAlive(lastTarget)) then
-            return
-        end
-
-        local targetRoot = lastTarget:FindFirstChild('HumanoidRootPart')
-
-        if not targetRoot then
-            return
-        end
-
-        local maxDistance = math.clamp(ball.Velocity.Magnitude / 3, 6, 26)
-
-        if (targetRoot.Position - root.Position).Magnitude < maxDistance then
-            lastClash = tick()
-
-            return true
-        end
-    end
-
-    local function setLastTarget(ball)
-        local targetName = ball:GetAttribute('target')
-        local target = targetName and workspace.Alive:FindFirstChild(targetName)
-
-        if not target or target == player.Name or not isAlive(target) then
-            lastTarget = nil
-
-            return
-        end
-
-        lastTarget = target
-    end
 
     local function autoParry()
         if not root.Parent then
@@ -120,40 +82,63 @@ local function init(character)
         local ping = game.Stats.Network.ServerStatsItem['Data Ping']:GetValue() / 1000
 
         for _, ball in workspace.Balls:GetChildren() do
-            if not (ball:GetAttribute('realBall') and ball:GetAttribute('target') == player.Name) then
+            if not (ball:GetAttribute('realBall')) then
                 continue
             end
 
-            local interpolated = ball.Position + (ball.Velocity * (ping * 1.4))
-            local distance = 10 + (math.min(ball.Velocity.Magnitude / 700, 1) * 90)
-            
-            if lastTarget and isAlive(lastTarget) and tick() - (lastClash or 0) < ping * 2 and (root.Position - lastTarget.PrimaryPart.Position).Magnitude < 50 then
-                distance *= 1.2
+            local velocity = ball.Velocity
+
+            if velocity.Magnitude < lastVelocity.Magnitude then
+                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.01)
             end
+
+            lastVelocity = velocity
+
+            local interpolated = ball.Position + (ball.Velocity * (ping / 2))
+            local distance = 1 + (velocity.Magnitude / 5) + (ping * 100)
 
             fakeBall.Position = interpolated
             visualizer.Size = Vector3.one * distance
 
-            if (pos - interpolated).Magnitude < distance or (pos - ball.Position).Magnitude < distance then
+            if ball:GetAttribute('target') ~= player.Name then
+                return
+            end
+            
+            if (pos - interpolated).Magnitude < distance then
                 keypress(0x46)
 
-                if clash(ball) then
-                    return
+                if lastTarget then
+                    if isAlive(lastTarget) and os.clock() - targetUpdate < ping then
+                        return
+                    else
+                        lastTarget = nil
+                    end
                 end
                 
-                cooldown = tick()
+                cooldown = true
 
-                while ball:GetAttribute('target') == player.Name or tick() - cooldown < ping do
-                    task.wait()
-                end
+                ball:GetAttributeChangedSignal('target'):Wait()
+
+                local target = ball:GetAttribute('target')
 
                 cooldown = false
 
-                setLastTarget(ball)
+                if target and target.Name ~= player.Name then
+                    local entity = workspace.Alive:FindFirstChild(target)
 
+                    if entity and isAlive(entity) then
+                        lastTarget = entity
+                        targetUpdate = os.clock()
+                    end
+                end
+                
                 break
             end
+
+            return
         end
+
+        visualizer.Size = Vector3.one
     end
 
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
