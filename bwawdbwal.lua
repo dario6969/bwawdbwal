@@ -116,11 +116,11 @@ local function init(character)
             end
 
             if velocity.Magnitude < lastVelocity.Magnitude then
-                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.01)
+                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.001)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping / 2))
-            local distance = 4 + (velocity.Magnitude / 5) + (ping * 100)
+            local distance = 3 + (velocity.Magnitude / 5) + (ping * 100)
 
             if visualizer then
                 visualizer.Size = Vector3.one * distance
@@ -139,7 +139,7 @@ local function init(character)
                 keypress(0x46)
 
                 if lastTarget then
-                    if isAlive(lastTarget) and os.clock() - targetUpdate < ping then
+                    if isAlive(lastTarget) and tick() - targetUpdate < (ping * 0.33) then
                         return
                     else
                         lastTarget = nil
@@ -149,7 +149,13 @@ local function init(character)
                 cooldown = tick()
 
                 while ball:GetAttribute('target') == player.Name do
-                    task.wait()
+                    if tick() - cooldown > ping * 4 then
+                        cooldown = false
+
+                        return
+                    end
+
+                    RunService.RenderStepped:Wait()
                 end
 
                 local target = ball:GetAttribute('target')
@@ -161,7 +167,7 @@ local function init(character)
 
                     if entity and isAlive(entity) then
                         lastTarget = entity
-                        targetUpdate = os.clock()
+                        targetUpdate = tick()
                     end
                 end
                 
