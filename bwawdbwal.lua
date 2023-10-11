@@ -116,7 +116,7 @@ local function init(character)
             end
 
             if velocity.Magnitude < lastVelocity.Magnitude then
-                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.005)
+                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.01)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping / 2))
@@ -138,18 +138,18 @@ local function init(character)
             if (pos - interpolated).Magnitude < distance then
                 keypress(0x46)
 
-                if lastTarget then
-                    if isAlive(lastTarget) and tick() - targetUpdate < (ping * 0.33) then
-                        return
-                    else
-                        lastTarget = nil
-                    end
-                end
+                -- if lastTarget then
+                --     if isAlive(lastTarget) and tick() - targetUpdate < (ping * 0.2) then
+                --         return
+                --     else
+                --         lastTarget = nil
+                --     end
+                -- end
                 
                 cooldown = tick()
 
                 while ball:GetAttribute('target') == player.Name do
-                    if tick() - cooldown > ping * 4 then
+                    if tick() - cooldown > ping * 8 then
                         cooldown = false
 
                         return
@@ -182,8 +182,8 @@ local function init(character)
         end
     end
 
+    table.insert(shared.Connections, RunService.RenderStepped:Connect(autoParry))
     table.insert(shared.Connections, RunService.PostSimulation:Connect(autoParry))
-    table.insert(shared.Connections, RunService.PreSimulation:Connect(autoParry))
 end
 
 if shared.Poop then
@@ -195,3 +195,5 @@ shared.Poop = player.CharacterAdded:Connect(init)
 if player.Character then
     init(player.Character)
 end
+
+setfpscap(144)
