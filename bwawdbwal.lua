@@ -116,7 +116,7 @@ local function init(character)
             end
 
             if velocity.Magnitude < lastVelocity.Magnitude then
-                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.001)
+                velocity = lastVelocity:Lerp(velocity, (1 / ping) * 0.005)
             end
 
             local interpolated = ball.Position + (ball.Velocity * (ping / 2))
